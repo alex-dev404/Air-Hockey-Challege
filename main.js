@@ -23,8 +23,8 @@ var track = tracks.thema;
 var duration = Sound.duration(track);
 Timer.reset(timer);
 
-var Particle = new Image("assets/effect/light_white.png",RAM)
-var particles = []; 
+let Particle = new Image("assets/effect/light_white.png",RAM)
+let particles = []; 
 const colors = {
   Black: Color.new(0, 0, 0),
   White: Color.new(255, 255, 255),
@@ -60,31 +60,32 @@ var screen = 0;
 
 
 // variaveis do jogo
+let colision = false
 var Ball = { X: 285, Y: 190,dx: 3,
   dy: 3,
   radius: 10,};
-var valueAfterX = 0;
-var valueAfterY = 0;
-var new_pad = Pads.get();
-var old_pad = new_pad;
-var pd = Pads.get();
-var pd2 = Pads.get();
+let valueAfterX = 0;
+let valueAfterY = 0;
+let new_pad = Pads.get();
+let old_pad = new_pad;
+let pd = Pads.get();
+let pd2 = Pads.get();
 var velocidade = 8;
 var ballSpeedX = 8;
 var ballSpeedY = 8;
 var speed_cpu = 8;
 var life_particle = 0.0;
-const Nums = {
+let Nums = {
   nums_red : new Image("assets/num/num_blue_"+Players.Player2[0].gols+".png",RAM),
   nums_blue : new Image( "assets/num/num_blue_"+Players.Player1[0].gols+".png",RAM)
 }
-var op_seta = 
+let op_seta = 
   [{ x: 388, y: 135 },
   { x: 388, y: 187 },
   { x: 388, y: 243 },
   { x: 388, y: 295 },
   { x: 388, y: 347 }];
-var seta = 
+let seta = 
   [{ x: 388, y: 317 },
   { x: 388, y: 357 },
   { x: 388, y: 397 }];
@@ -113,6 +114,11 @@ class main {
       this.menu_opçoes();
     }
   }
+  updateScoreImages() {
+    Nums.nums_red = new Image("assets/num/num_blue_"+Players.Player2[0].gols+".png",RAM);
+    Nums.nums_blue = new Image( "assets/num/num_blue_"+Players.Player1[0].gols+".png",RAM);
+  }
+  
   track_inPlay(audio){
     if(Sound.isPlaying()) {
       Sound.pause(track);
@@ -149,9 +155,7 @@ class main {
       this.ResetPlayers();
       Particle = new Image('assets/effect/light_red.png',RAM);
       this.createParticles(Ball.X + 16,Ball.Y + 16, 5);
-      Nums.nums_red = new Image("assets/num/num_blue_"+Players.Player2[0].gols+".png",RAM);
-      Nums.nums_blue = new Image( "assets/num/num_blue_"+Players.Player1[0].gols+".png",RAM);
-      
+      this.updateScoreImages();
         
     }
 
@@ -165,10 +169,7 @@ class main {
       this.ResetPlayers();
       Particle = new Image('assets/effect/light_green.png',RAM);
       this.createParticles(Ball.X + 16,Ball.Y + 16, 5);
-      Nums.nums_blue = new Image( "assets/num/num_blue_"+Players.Player1[0].gols+".png",RAM);
-      Nums.nums_red = new Image("assets/num/num_blue_"+Players.Player2[0].gols+".png",RAM);
-      
-      
+      this.updateScoreImages();
   }
   }
 
@@ -218,7 +219,7 @@ class main {
     }
     for (let i = 0; i < particles.length; i++) {
       const particle = particles[i];
-      Particle.draw(particle.x, particle.y);
+      particle.color.draw(particle.x, particle.y);
       life_particle = 255;
     }
 
@@ -226,13 +227,15 @@ class main {
 
   createParticles(x, y, num) {
     for (let i = 0; i < num; i++) {
-        particles.push({
-            x,
-            y,
-            dx: Math.random() * 6 - 3, // velocidade aleatória em x
-            dy: Math.random() * 6 - 3, // velocidade aleatória em y
-            life: 66.0
-        });
+      const particle = {
+        x,
+        y,
+        dx: Math.random() * 6 - 3,
+        dy: Math.random() * 6 - 3,
+        life: 66.0,
+        color: Particle // Usando uma nova instância para cada partícula
+      };
+      particles.push(particle);
     }
   }
   ball_inBlock(){
@@ -248,16 +251,18 @@ class main {
   }
 
   statics_ps2_memory(){
-    var ram = System.getMemoryStats();
-    if (Pads.check(new_pad, Pads.TRIANGLE)) {
-      font.print(10,10 , "RAM:" + ram.used + "KB usada");
-    }
+    let ram = System.getMemoryStats();
+    font.print(10,10 , "RAM:" + ram.used + "KB usada");
   }
 
   Menu() {
+    
     old_pad = new_pad;
     new_pad = Pads.get();
     Sound.play(tracks.thema);
+    Players.Player1[0].gols = 0;
+    Players.Player2[0].gols = 0;
+    this.updateScoreImages();
     
     if (Pads.check(new_pad, Pads.UP) && !Pads.check(old_pad, Pads.UP)) {
       Sound.play(tracks.efect);
@@ -291,14 +296,18 @@ class main {
     }
     MenuImage.menu.draw(0, 0);
     MenuImage.seta.draw(seta_pos.x, seta_pos.y);
+    this.statics_ps2_memory();
   }
 
   menu_pause(){
+    
     old_pad = new_pad;
     new_pad = Pads.get();
     Sound.play(tracks.thema);
     MenuImage.menu_pause.draw(0,0);
     MenuImage.seta.draw(seta_pos.x,seta_pos.y);
+    this.statics_ps2_memory();
+    
 
     if (Pads.check(new_pad, Pads.UP) && !Pads.check(old_pad, Pads.UP)) {
       Sound.play(tracks.efect);
@@ -325,6 +334,7 @@ class main {
       this.ResetPlayers();
       Players.Player1[0].gols = 0;
       Players.Player2[0].gols = 0;
+      this.updateScoreImages();
       screen = 1;
     }
     if (Pads.check(new_pad, Pads.CROSS) && !Pads.check(old_pad, Pads.CROSS) && selected == 2) {
@@ -338,6 +348,7 @@ class main {
     old_pad = new_pad;
     new_pad = Pads.get();
     Sound.play(tracks.thema);
+    
     if (Pads.check(new_pad, Pads.UP) && !Pads.check(old_pad, Pads.UP)) {
       Sound.play(tracks.efect);
       if (c > 0){
@@ -363,6 +374,7 @@ class main {
     MenuImage.menu_opçoes.draw(0,0);
     MenuImage.hand_difficulty.draw(423, op_seta[difficulty].y);
     MenuImage.seta.draw(seta_option_pos.x, seta_option_pos.y);
+    this.statics_ps2_memory();
   }
 
   Move_paddles() {
@@ -422,7 +434,6 @@ class main {
       ballSpeedX = -ballSpeedX;
       this.track_inPlay(tracks.paddle_0);
       Particle = new Image('assets/effect/light_green.png',RAM);
-      this.createParticles(Ball.X ,Ball.Y + 32, 5);
       if (Players.Player2[0].Y < valueAfterX){
         ballSpeedY = +this.normalize_value(Players.Player2[0].Y);
       }else if(Players.Player2[0].Y === valueAfterX){
