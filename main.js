@@ -23,47 +23,30 @@ var track = tracks.thema;
 var duration = Sound.duration(track);
 Timer.reset(timer);
 
-let Particle = new Image("assets/effect/light_white.png",RAM)
-let particles = []; 
-const colors = {
-  Black: Color.new(0, 0, 0),
-  White: Color.new(255, 255, 255),
-  BlueDark: Color.new(23, 27, 255),
-  Blue: Color.new(48, 92, 255)
-};
-const MenuImage = {
-  menu: new Image("assets/mainmenu/mainmenu.png",RAM),
-  menu_pause: new Image("assets/mainmenu/menu_pause.png",RAM),
-  menu_opçoes: new Image("assets/mainmenu/menu_opcões.png",RAM),
-  hand_difficulty: new Image("assets/mainmenu/difficulty.png",RAM),
-  seta: new Image("assets/mainmenu/Check.png",VRAM)
-};
+var Particle = new Image("assets/effect/light_white.png",RAM);
+var particles = []; 
+
 const Players = {
   Player1: [{ X: 569, Y: 195, gols : 0}],
-  Player2: [{ X: 13, Y: 195, gols : 0 }]
+  Player2: [{ X: 13, Y: 195, gols : 0}]
 };
 
-const GameImage = {
+let GameImage = {
   bg: new Image("assets/game/arena.png",RAM),
-  ball: new Image("assets/game/game_img_puck0.png",VRAM),
-  red: new Image("assets/game/game_ing_paddle0_0.png",VRAM),
-  blue: new Image("assets/game/game_ing_paddle0_1.png",VRAM),
+  ball: new Image("assets/game/game_img_puck0.png",RAM),
+  red: new Image("assets/game/game_ing_paddle0_0.png",RAM),
+  blue: new Image("assets/game/game_ing_paddle0_1.png",RAM),
   winner: new Image("assets/game/result/result_text_youwin.png",RAM),
   loser: new Image("assets/game/result/result_text_youlose.png",RAM),
   gool: new Image("assets/game/result/result_text_youlose.png",RAM)
 };
 
-const Black = Color.new(255, 255, 255);
-font.color = Black;
+
 
 var screen = 0;
-
-
-// variaveis do jogo
-let colision = false
 var Ball = { X: 285, Y: 190,dx: 3,
   dy: 3,
-  radius: 10,};
+  radius: 16,};
 let valueAfterX = 0;
 let valueAfterY = 0;
 let new_pad = Pads.get();
@@ -97,38 +80,46 @@ var selected = 0;
 var difficulty = 0;
 var c = 0;
 
+let MenuImage = {
+  menu: new Image("assets/mainmenu/mainmenu.png",RAM),
+  menu_pause: new Image("assets/mainmenu/menu_pause.png",RAM),
+  menu_opçoes: new Image("assets/mainmenu/menu_opcões.png",RAM),
+  hand_difficulty: new Image("assets/mainmenu/difficulty.png",RAM),
+  seta: new Image("assets/mainmenu/Check.png",RAM)
+};
 class main {
-  
   SetScreen() {
-    if (screen == 0) {
-      this.Menu();
-      
-    }
     if (screen == 1) {
       this.Play();
+      seta_pos = seta[0]
+      seta_option_pos = op_seta[0];
+      MenuImage = {};
+      tracks.thema = 0;
     }
     if (screen == 2){
+      GameImage = {};
       this.menu_pause();
     }
     if (screen == 3){
       this.menu_opçoes();
     }
+    if (screen == 0) {
+      this.Menu();
+    } 
   }
-  updateScoreImages() {
-    Nums.nums_red = new Image("assets/num/num_blue_"+Players.Player2[0].gols+".png",RAM);
-    Nums.nums_blue = new Image( "assets/num/num_blue_"+Players.Player1[0].gols+".png",RAM);
+
+  load_imagens_game(){
+    GameImage = {
+      bg: new Image("assets/game/arena.png",RAM),
+      ball: new Image("assets/game/game_img_puck0.png",RAM),
+      red: new Image("assets/game/game_ing_paddle0_0.png",RAM),
+      blue: new Image("assets/game/game_ing_paddle0_1.png",RAM),
+      winner: new Image("assets/game/result/result_text_youwin.png",RAM),
+      loser: new Image("assets/game/result/result_text_youlose.png",RAM),
+      gool: new Image("assets/game/result/result_text_youlose.png",RAM)
+    };
   }
   
-  track_inPlay(audio){
-    if(Sound.isPlaying()) {
-      Sound.pause(track);
-      Timer.reset(timer);
-    }
-    track = audio;
-    Timer.reset(timer);
-    Sound.play(track); 
-    
-  }
   pause_thema(){
     let scrm = screen;
     if (scrm == 1){
@@ -206,23 +197,12 @@ class main {
     }
   }
 
-  updateParticles() {
-    for (let i = 0; i < particles.length; i++) {
-      particles[i].x += particles[i].dx;
-      particles[i].y += particles[i].dy;
-      particles[i].life -= 2.0;
-      // Remover partícula quando atingir o tempo de vida
-      if (particles[i].life <= 0) {
-        particles.pop(i);
-        i--;  // Decrementar i para evitar problemas ao remover elementos do array
-      }
-    }
+  draw_particles() {
     for (let i = 0; i < particles.length; i++) {
       const particle = particles[i];
       particle.color.draw(particle.x, particle.y);
       life_particle = 255;
     }
-
   }
 
   createParticles(x, y, num) {
@@ -233,11 +213,20 @@ class main {
         dx: Math.random() * 6 - 3,
         dy: Math.random() * 6 - 3,
         life: 66.0,
-        color: Particle // Usando uma nova instância para cada partícula
+        color: Particle // Using a new instance for each particle
       };
       particles.push(particle);
     }
   }
+
+  updateParticles() {
+    for (let i = 0; i < particles.length; i++) {
+      particles[i].x += particles[i].dx;
+      particles[i].y += particles[i].dy;
+      particles[i].life -= 2.0;
+    }
+  }
+  
   ball_inBlock(){
     if((Ball.X < 0) || (Ball.X + 32 > 640) || (Ball.Y < 0) || (Ball.Y + 32 > 448)){
       this.ResetBall();
@@ -254,15 +243,11 @@ class main {
     let ram = System.getMemoryStats();
     font.print(10,10 , "RAM:" + ram.used + "KB usada");
   }
-
   Menu() {
-    
+    Sound.play(tracks.thema);
     old_pad = new_pad;
     new_pad = Pads.get();
-    Sound.play(tracks.thema);
-    Players.Player1[0].gols = 0;
-    Players.Player2[0].gols = 0;
-    this.updateScoreImages();
+    
     
     if (Pads.check(new_pad, Pads.UP) && !Pads.check(old_pad, Pads.UP)) {
       Sound.play(tracks.efect);
@@ -279,11 +264,13 @@ class main {
     }
 
     if (Pads.check(new_pad, Pads.CROSS) && !Pads.check(old_pad, Pads.CROSS) && Count== 0) {
+      this.load_imagens_game();
       Sound.play(tracks.gol);
       screen = 1;
       this.ResetBall();
     }
     if (Pads.check(new_pad, Pads.CROSS) && !Pads.check(old_pad, Pads.CROSS) && Count == 1) {
+      this.load_imagens_game();
       Sound.play(tracks.gol);
       screen = 1;
       this.ResetBall();
@@ -297,17 +284,17 @@ class main {
     MenuImage.menu.draw(0, 0);
     MenuImage.seta.draw(seta_pos.x, seta_pos.y);
     this.statics_ps2_memory();
+    
   }
 
   menu_pause(){
-    
+    //this.load_image_menus();
+    Sound.play(tracks.thema);
     old_pad = new_pad;
     new_pad = Pads.get();
-    Sound.play(tracks.thema);
+    
     MenuImage.menu_pause.draw(0,0);
     MenuImage.seta.draw(seta_pos.x,seta_pos.y);
-    this.statics_ps2_memory();
-    
 
     if (Pads.check(new_pad, Pads.UP) && !Pads.check(old_pad, Pads.UP)) {
       Sound.play(tracks.efect);
@@ -326,7 +313,7 @@ class main {
       screen = 1;
       this.ResetBall();
       this.ResetPlayers();
-     
+    
     }
     if (Pads.check(new_pad, Pads.CROSS) && !Pads.check(old_pad, Pads.CROSS) && selected == 1) {
       Sound.play(tracks.gol);
@@ -334,7 +321,6 @@ class main {
       this.ResetPlayers();
       Players.Player1[0].gols = 0;
       Players.Player2[0].gols = 0;
-      this.updateScoreImages();
       screen = 1;
     }
     if (Pads.check(new_pad, Pads.CROSS) && !Pads.check(old_pad, Pads.CROSS) && selected == 2) {
@@ -342,12 +328,15 @@ class main {
       screen = 0;
       
     }
+    
+    
   }
 
   menu_opçoes(){
+    //this.load_image_menus();
+    Sound.play(tracks.thema);
     old_pad = new_pad;
     new_pad = Pads.get();
-    Sound.play(tracks.thema);
     
     if (Pads.check(new_pad, Pads.UP) && !Pads.check(old_pad, Pads.UP)) {
       Sound.play(tracks.efect);
@@ -374,10 +363,14 @@ class main {
     MenuImage.menu_opçoes.draw(0,0);
     MenuImage.hand_difficulty.draw(423, op_seta[difficulty].y);
     MenuImage.seta.draw(seta_option_pos.x, seta_option_pos.y);
-    this.statics_ps2_memory();
+    
   }
-
   Move_paddles() {
+    old_pad = new_pad;
+    new_pad = Pads.get();
+    if (Pads.check(new_pad, Pads.START) && !Pads.check(old_pad, Pads.START)) {
+      this.start();
+    }
     pd = Pads.get();
     if (pd.rx < -50) {
       Players.Player1[0].X = Players.Player1[0].X - velocidade;
@@ -405,6 +398,7 @@ class main {
     if (pd2.ly < -50) {
       Players.Player2[0].Y = Players.Player2[0].Y - velocidade;
     }
+    
     // Verificar colisão com os jogadores (paddles)
     if // paddle esq
     //right colison e down
@@ -414,7 +408,7 @@ class main {
       ballSpeedY = -ballSpeedY;
       ballSpeedX = -ballSpeedX;
       this.track_inPlay(tracks.paddle_0);
-      Particle = new Image('assets/effect/light_green.png',RAM);
+      Particle = new Image('assets/effect/light_green.png', RAM);
       this.createParticles(Ball.X,Ball.Y, 5);
       if (Players.Player2[0].Y < valueAfterX){
         ballSpeedY = +this.normalize_value(Players.Player2[0].Y);
@@ -434,6 +428,7 @@ class main {
       ballSpeedX = -ballSpeedX;
       this.track_inPlay(tracks.paddle_0);
       Particle = new Image('assets/effect/light_green.png',RAM);
+      this.createParticles(Ball.X ,Ball.Y + 32, 5);
       if (Players.Player2[0].Y < valueAfterX){
         ballSpeedY = +this.normalize_value(Players.Player2[0].Y);
       }else if(Players.Player2[0].Y === valueAfterX){
@@ -506,7 +501,6 @@ class main {
        
       }
     }
-    
   }
   draw() {
     GameImage.bg.draw(0, 0);
@@ -574,7 +568,7 @@ class main {
     if ((Ball.Y + 32>= 438 && Ball.X + 32< 320 )){
       this.track_inPlay(tracks.ball_to_wall);
       ballSpeedY = -ballSpeedY;
-      Particle = new Image('assets/effect/light_green.png',RAM);
+      Particle = new Image('assets/effect/light_green.png',RAM)
       this.createParticles(Ball.X + 16 ,Ball.Y + 16, 5);
     }else if ((Ball.X <=10 && Ball.Y + 32 >= 315)){
       this.track_inPlay(tracks.ball_to_wall);
@@ -636,9 +630,11 @@ class main {
   start(){
     old_pad = new_pad;
     new_pad = Pads.get();
-    if (Pads.check(new_pad, Pads.START) && !Pads.check(old_pad, Pads.START)) {
+    if (Pads.check(new_pad, Pads.START) && !Pads.check(old_pad, Pads.START) && screen == 1) {
       screen = 2;
     }
+    
+    
   }
   MoveBall() {
     Ball.X -= ballSpeedX;
@@ -647,8 +643,8 @@ class main {
   }
 
   Play() {
-    this.CollisionBall();
     this.start();
+    this.CollisionBall();
     this.Move_paddles();
     this.MoveBall();  // Adicionando a movimentação da bola
     this.pause_thema();
@@ -657,11 +653,11 @@ class main {
     this.Check_gol();
     this.WinnerPlayer();
     this.updateParticles();
+    this.draw_particles();
     this.statics_ps2_memory();
     
   }
 }
-Timer.destroy(timer);
 const Game = new main();
 os.setInterval(() => {
   Screen.clear();
