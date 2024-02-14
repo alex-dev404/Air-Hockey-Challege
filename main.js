@@ -1,10 +1,11 @@
-// {"name": "Air Hockey Challenger", "author": "Alex Dev", "version": "04012023", "icon": "ic_launcher.png", "file": "main.js"}
 var font = new Font("fonts/LEMONMILK-Regular.otf");
-let canvas = Screen.getMode();
+let canvas = Screen.getMode(NTSC);
 
 canvas.width = 640;
 canvas.height = 448;
 Screen.setMode(canvas);
+Screen.setVSync(false);
+//Screen.setFrameCounter(true);
 
 Sound.setVolume(100);
 Sound.setVolume(100, 0);
@@ -35,9 +36,9 @@ const GameImage = {
   ball: new Image("assets/game/game_img_puck0.png",RAM),
   red: new Image("assets/game/game_ing_paddle0_0.png",RAM),
   blue: new Image("assets/game/game_ing_paddle0_1.png",RAM),
+  gol: new Image("assets/game/gool.png",RAM),
   winner: new Image("assets/game/result/result_text_youwin.png",RAM),
-  loser: new Image("assets/game/result/result_text_youlose.png",RAM),
-  gool: new Image("assets/game/result/result_text_youlose.png",RAM)
+  loser: new Image("assets/game/result/result_text_youlose.png",RAM)
 };
 
 
@@ -48,10 +49,8 @@ const Ball = { X: 285, Y: 190,dx: 3,
   radius: 16,};
 let valueAfterX = 0;
 let valueAfterY = 0;
-let new_pad = Pads.get();
-let old_pad = new_pad;
-let pd = Pads.get();
-let pd2 = Pads.get();
+let pd = Pads.get(1);
+let pd2 = Pads.get(0);
 var velocidade = 8;
 var ballSpeedX = 8;
 var ballSpeedY = 8;
@@ -86,107 +85,90 @@ const MenuImage = {
   hand_difficulty: new Image("assets/mainmenu/difficulty.png",RAM),
   seta: new Image("assets/mainmenu/Check.png",RAM)
 };
-class main {
-  SetScreen() {
-    if (screen == 0) {
-      this.Menu();
+function sprite_draw(x, y, sprite){
+  sprite.draw(x,y)
+}
+function Menu(){
+  Sound.play(tracks.thema);
+  Sound.repeat(true);
+  pd2.update();
+  if (pd2.justPressed(Pads.UP)) {
+    Sound.play(tracks.efect);
+    if (Count > 0){
+      seta_pos = seta[Count -= 1];
     }
-    if (screen == 1) {
-      this.Play();
-    }
-    if (screen == 2){
-      this.menu_pause();
-    }
-    if (screen == 3){
-      this.menu_opçoes();
-    }
-    
   }
-  Menu() {
-    Sound.play(tracks.thema);
-    Sound.repeat(true);
-    old_pad = new_pad;
-    new_pad = Pads.get();
-    
-    
-    if (Pads.check(new_pad, Pads.UP) && !Pads.check(old_pad, Pads.UP)) {
-      Sound.play(tracks.efect);
-      if (Count > 0){
-        seta_pos = seta[Count -= 1];
-      }
-    }
-    if (Pads.check(new_pad, Pads.DOWN) && !Pads.check(old_pad, Pads.DOWN)) {
-      Sound.play(tracks.efect);
-      if (Count < 2){
-        seta_pos = seta[Count += 1];
-        
-      }
-    }
-
-    if (Pads.check(new_pad, Pads.CROSS) && !Pads.check(old_pad, Pads.CROSS) && Count == 0) {
-      Players.Player1[0].gols = 0;
-      Players.Player2[0].gols = 0;
-      Nums = {
-        nums_red : new Image("assets/num/num_blue_"+Players.Player2[0].gols+".png",RAM),
-        nums_blue : new Image( "assets/num/num_blue_"+Players.Player1[0].gols+".png",RAM)
-      }
-      screen = 1;
-      Sound.play(tracks.gol);
-      this.ResetBall();
-      this.ResetPlayers();
-    }
-    if (Pads.check(new_pad, Pads.CROSS) && !Pads.check(old_pad, Pads.CROSS)&& Count == 1) {
-      Players.Player1[0].gols = 0;
-      Players.Player2[0].gols = 0;
-      Nums = {
-        nums_red : new Image("assets/num/num_blue_"+Players.Player2[0].gols+".png",RAM),
-        nums_blue : new Image( "assets/num/num_blue_"+Players.Player1[0].gols+".png",RAM)
-      }
-      screen = 1;
-      Sound.play(tracks.gol);
-      this.ResetBall();
-      this.adjuste_difficulty();
-    }
-    if (Pads.check(new_pad, Pads.CROSS) && !Pads.check(old_pad, Pads.CROSS)&& Count == 2) {
-      screen = 3;
-      Sound.play(tracks.gol);
-      
+  if (pd2.justPressed(Pads.DOWN)) {
+    Sound.play(tracks.efect);
+    if (Count < 2){
+      seta_pos = seta[Count += 1];
       
     }
-    MenuImage.menu.draw(0, 0);
-    MenuImage.seta.draw(seta_pos.x, seta_pos.y);
   }
 
-  menu_pause(){
-    old_pad = new_pad;
-    new_pad = Pads.get();
+  if (pd2.justPressed(Pads.CROSS) && Count == 0) {
+    Players.Player1[0].gols = 0;
+    Players.Player2[0].gols = 0;
+    Nums = {
+      nums_red : new Image("assets/num/num_blue_"+Players.Player2[0].gols+".png",RAM),
+      nums_blue : new Image( "assets/num/num_blue_"+Players.Player1[0].gols+".png",RAM)
+    }
+    screen = 1;
+    Sound.play(tracks.gol);
+    ResetBall();
+    ResetPlayers();
+  }
+  if (pd2.justPressed(Pads.CROSS) && Count == 1) {
+    Players.Player1[0].gols = 0;
+    Players.Player2[0].gols = 0;
+    Nums = {
+      nums_red : new Image("assets/num/num_blue_"+Players.Player2[0].gols+".png",RAM),
+      nums_blue : new Image( "assets/num/num_blue_"+Players.Player1[0].gols+".png",RAM)
+    }
+    screen = 1;
+    Sound.play(tracks.gol);
+    ResetBall();
+    adjuste_difficulty();
+  }
+  if (pd2.justPressed(Pads.CROSS) && Count == 2) {
+    screen = 3;
+    Sound.play(tracks.gol);
+    
+    
+  }
+  MenuImage.menu.draw(0, 0);
+  MenuImage.seta.draw(seta_pos.x, seta_pos.y);
+}
+
+function  menu_pause(){
+    pd2.update();
     
     MenuImage.menu_pause.draw(0,0);
     MenuImage.seta.draw(seta_pos.x,seta_pos.y);
 
-    if (Pads.check(new_pad, Pads.UP) && !Pads.check(old_pad, Pads.UP)) {
+    if (pd2.justPressed(Pads.UP)) {
       Sound.play(tracks.efect);
       if (selected > 0){
         seta_pos = seta[selected -= 1];
       }
     }
-    if (Pads.check(new_pad, Pads.DOWN) && !Pads.check(old_pad, Pads.DOWN)) {
+    if (pd2.justPressed(Pads.DOWN)) {
       Sound.play(tracks.efect);
       if (selected < 2){
         seta_pos = seta[selected += 1];
       }
     }
-    if (Pads.check(new_pad, Pads.CROSS) && !Pads.check(old_pad, Pads.CROSS)&& selected == 0) {
+    if (pd2.justPressed(Pads.CROSS) && selected == 0) {
       Nums = {
         nums_red : new Image("assets/num/num_blue_"+Players.Player2[0].gols+".png",RAM),
         nums_blue : new Image( "assets/num/num_blue_"+Players.Player1[0].gols+".png",RAM)
       }
       screen = 1;
       Sound.play(tracks.gol);
-      this.ResetBall();
+      ResetBall();
     
     }
-    if (Pads.check(new_pad, Pads.CROSS) && !Pads.check(old_pad, Pads.CROSS)&& selected == 1) {
+    if (pd2.justPressed(Pads.CROSS) && selected == 1) {
       Players.Player1[0].gols = 0;
       Players.Player2[0].gols = 0;
       Nums = {
@@ -195,12 +177,12 @@ class main {
       }
       screen = 1;
       Sound.play(tracks.gol);
-      this.ResetBall();
-      this.ResetPlayers();
+      ResetBall();
+      ResetPlayers();
       Players.Player1[0].gols = 0;
       Players.Player2[0].gols = 0;
     }
-    if (Pads.check(new_pad, Pads.CROSS) && !Pads.check(old_pad, Pads.CROSS) && selected == 2) {
+    if (pd2.justPressed(Pads.CROSS) && selected == 2) {
       screen = 0;
       Sound.play(tracks.gol);
       
@@ -208,24 +190,23 @@ class main {
     }
   }
 
-  menu_opçoes(){
-    old_pad = new_pad;
-    new_pad = Pads.get();
+function  menu_opçoes(){
+    pd2.update();
     
-    if (Pads.check(new_pad, Pads.UP) && !Pads.check(old_pad, Pads.UP)) {
+    if (pd2.justPressed(Pads.UP)) {
       Sound.play(tracks.efect);
       if (c > 0){
         seta_option_pos = op_seta[c -= 1];
       }
     }
-    if (Pads.check(new_pad, Pads.DOWN) && !Pads.check(old_pad, Pads.DOWN)) {
+    if (pd2.justPressed(Pads.DOWN)) {
       Sound.play(tracks.efect);
       if (c < 4){
         seta_option_pos = op_seta[c += 1];
       }
       
     }
-    if (Pads.check(new_pad, Pads.CROSS) && !Pads.check(old_pad, Pads.CROSS)) {
+    if (pd2.justPressed(Pads.CROSS)) {
       Sound.play(tracks.gol);
       if (c >= 0 && c <= 3){
         difficulty = c;
@@ -240,16 +221,16 @@ class main {
     
   }
   
-  pause_thema(){
+function  pause_thema(){
     let scrm = screen;
     if (scrm == 1){
-      Sound.pause(tracks.thema);
+        Sound.pause(tracks.thema);
     }else{
       Sound.play(tracks.thema);
     }
   }
   
-  ResetPlayers(){
+function  ResetPlayers(){
     Players.Player1[0].X = 569;
     Players.Player1[0].Y = 189;
     Players.Player2[0].X = 13;
@@ -257,24 +238,24 @@ class main {
   }
  
 
-  normalize_value(add_value){
+function  normalize_value(add_value){
     return ((add_value - -448) / (640 - -448) * (15 - -15) + -15);
   }
 
-  adjuste_difficulty(){
+function  adjuste_difficulty(){
     if (difficulty == 0){
-      speed_cpu = 4;
+      speed_cpu = 5;
     }else if (difficulty == 1){
-      speed_cpu = 8;
+      speed_cpu = 6;
     }else if(difficulty == 2){
-      speed_cpu = 12;
+      speed_cpu = 7;
     }else if(difficulty == 3){
-      speed_cpu = 15;
+      speed_cpu = 8;
     }
   }
 
 
-  updateParticles() {
+function  updateParticles() {
     for (let i = 0; i < particles.length; i++) {
       particles[i].x += particles[i].dx;
       particles[i].y += particles[i].dy;
@@ -289,7 +270,7 @@ class main {
       }
     }
   }
-  track_inPlay(audio){
+function  track_inPlay(audio){
     if(Sound.isPlaying()) {
       Sound.pause(track);
       Timer.reset(timer);
@@ -297,7 +278,7 @@ class main {
     track = audio;
     Sound.play(track);
   }
-  createParticles(x, y, num,sprite) {
+function  createParticles(x, y, num,sprite) {
     particles = [];
     for (let i = 0; i < num; i++) {
         particles.push({
@@ -311,7 +292,7 @@ class main {
     }
   }
   
-  ResetBall(){
+function  ResetBall(){
     ballSpeedX = 0;
     ballSpeedY = 0;
     Ball.X = 304;
@@ -319,13 +300,8 @@ class main {
   }
 
   
-  Move_paddles() {
-    old_pad = new_pad;
-    new_pad = Pads.get();
-    if (Pads.check(new_pad, Pads.START) && !Pads.check(old_pad, Pads.START)) {
-      this.start();
-    }
-    pd = Pads.get();
+function  Move_paddles() {
+    pd.update();
     if (pd.rx < -50) {
       Players.Player1[0].X = Players.Player1[0].X - velocidade;
     }
@@ -339,7 +315,7 @@ class main {
       Players.Player1[0].Y = Players.Player1[0].Y - velocidade;
     }
     // move paddle 1
-    pd2 = Pads.get();
+    pd2.update();
     if (pd2.lx < -50) {
       Players.Player2[0].X = Players.Player2[0].X - velocidade;
     }
@@ -361,16 +337,16 @@ class main {
     { 
       ballSpeedY = -ballSpeedY;
       ballSpeedX = -ballSpeedX;
-      this.track_inPlay(tracks.paddle_0);
-      this.createParticles(Ball.X,Ball.Y, 5, new Image('assets/effect/light_green.png'));
+      track_inPlay(tracks.paddle_0);
+      createParticles(Ball.X,Ball.Y, 5, new Image('assets/effect/light_green.png'));
       if (Players.Player2[0].Y < valueAfterX){
-        ballSpeedY = +this.normalize_value(Players.Player2[0].Y);
+        ballSpeedY = +normalize_value(Players.Player2[0].Y);
       }else if(Players.Player2[0].Y === valueAfterX){
         ballSpeedY= 0;
       }else{
-        ballSpeedY -= this.normalize_value(Players.Player2[0].Y);
+        ballSpeedY -= normalize_value(Players.Player2[0].Y);
       }
-      ballSpeedX = -this.normalize_value(Players.Player1[0].X);
+      ballSpeedX = -normalize_value(Players.Player1[0].X);
       valueAfterX = Players.Player2[0].Y;
     } 
     //leff colision e top
@@ -379,17 +355,17 @@ class main {
     { 
       ballSpeedY = -ballSpeedY;
       ballSpeedX = -ballSpeedX;
-      this.track_inPlay(tracks.paddle_0);
-      this.createParticles(Ball.X ,Ball.Y + 32, 5,new Image('assets/effect/light_green.png'));
+      track_inPlay(tracks.paddle_0);
+      createParticles(Ball.X ,Ball.Y + 32, 5,new Image('assets/effect/light_green.png'));
       if (Players.Player2[0].Y < valueAfterX){
-        ballSpeedY = +this.normalize_value(Players.Player2[0].Y);
+        ballSpeedY = +normalize_value(Players.Player2[0].Y);
       }else if(Players.Player2[0].Y === valueAfterX){
         ballSpeedY = 0;
       }else{
-        ballSpeedY -= this.normalize_value(Players.Player2[0].Y);
+        ballSpeedY -= normalize_value(Players.Player2[0].Y);
       }
       
-      ballSpeedX = +this.normalize_value(Players.Player1[0].X);
+      ballSpeedX = +normalize_value(Players.Player1[0].X);
       valueAfterX = Players.Player2[0].Y;
     }
     
@@ -401,16 +377,16 @@ class main {
     { 
       ballSpeedY = -ballSpeedY;
       ballSpeedX = -ballSpeedX;
-      this.track_inPlay(tracks.paddle_0);
-      this.createParticles(Ball.X,Ball.Y, 5,new Image('assets/effect/light_red.png'));
+      track_inPlay(tracks.paddle_0);
+      createParticles(Ball.X,Ball.Y, 5,new Image('assets/effect/light_red.png'));
       if (Players.Player1[0].Y < valueAfterX){
-        ballSpeedY = +this.normalize_value(Players.Player1[0].Y);
+        ballSpeedY = +normalize_value(Players.Player1[0].Y);
       }else if(Players.Player1[0].Y === valueAfterY){
         ballSpeedY = 0;
       }else{
-        ballSpeedY -= this.normalize_value(Players.Player1[0].Y);
+        ballSpeedY -= normalize_value(Players.Player1[0].Y);
       }
-      ballSpeedX = +this.normalize_value(Players.Player1[0].X);
+      ballSpeedX = +normalize_value(Players.Player1[0].X);
       valueAfterY = Players.Player1[0].Y;
       
     } 
@@ -420,76 +396,76 @@ class main {
     { 
       ballSpeedY = -ballSpeedY;
       ballSpeedX = -ballSpeedX;
-      this.track_inPlay(tracks.paddle_0);
-      this.createParticles(Ball.X ,Ball.Y + 32, 5,new Image('assets/effect/light_red.png'));
+      track_inPlay(tracks.paddle_0);
+      createParticles(Ball.X ,Ball.Y + 32, 5,new Image('assets/effect/light_red.png'));
       if (Players.Player1[0].Y < valueAfterX){
-        ballSpeedY = +this.normalize_value(Players.Player1[0].Y);
+        ballSpeedY = +normalize_value(Players.Player1[0].Y);
       }else if(Players.Player1[0].Y === valueAfterY){
         ballSpeedY = 0;
       }else{
-        ballSpeedY -= this.normalize_value(Players.Player1[0].Y);
+        ballSpeedY -= normalize_value(Players.Player1[0].Y);
       }
-      ballSpeedX -= this.normalize_value(Players.Player1[0].X);
+      ballSpeedX -= normalize_value(Players.Player1[0].X);
       valueAfterY = Players.Player1[0].Y;
     }
     if(Count == 1){
-      if  ( Players.Player2[0].X > Ball.X + 32){
-        Players.Player2[0].X -= speed_cpu; 
+      if ( Players.Player1[0].X < Ball.X + 16){
+        Players.Player1[0].X -= speed_cpu; 
       }
-      if (Players.Player2[0].Y + 35 < Ball.Y + 16)
+      if (Players.Player1[0].Y + 35 < Ball.Y + 16)
         {
-          Players.Player2[0].Y += speed_cpu;
+          Players.Player1[0].Y += speed_cpu;
         }
-        else if (Players.Player2[0].Y + 35 > Ball.Y + 16) {
-          Players.Player2[0].Y -= speed_cpu; 
+        else if (Players.Player1[0].Y + 35 > Ball.Y + 16) {
+          Players.Player1[0].Y -= speed_cpu; 
         }
-      if(Ball.X > 320){
-        Players.Player2[0].X -= speed_cpu;
+      if(Ball.X + 32 < 320){
+        Players.Player1[0].X += speed_cpu;
       }else{
-        Players.Player2[0].X += speed_cpu;
+        Players.Player1[0].X -= speed_cpu;
         
        
       }
     }
     // red color arena 
     if ((Ball.Y <= 10 && Ball.X + 32< 320 )){
-      this.track_inPlay(tracks.ball_to_wall);
+      track_inPlay(tracks.ball_to_wall);
       ballSpeedY = -ballSpeedY;
-      this.createParticles(Ball.X + 16,Ball.Y, 5,new Image('assets/effect/light_red.png'));
+      createParticles(Ball.X + 16,Ball.Y, 5,new Image('assets/effect/light_red.png'));
     }else if((Ball.X <=10 && Ball.Y + 32<= 135)){
-      this.track_inPlay(tracks.ball_to_wall);
+      track_inPlay(tracks.ball_to_wall);
       ballSpeedX = -ballSpeedX; 
-      this.createParticles(Ball.X ,Ball.Y + 16, 5,new Image('assets/effect/light_red.png'));
+      createParticles(Ball.X ,Ball.Y + 16, 5,new Image('assets/effect/light_red.png'));
     };
     // yellon color arena 
     if ((Ball.Y <= 10 && Ball.X +32> 320 )){
-      this.track_inPlay(tracks.ball_to_wall);
+      track_inPlay(tracks.ball_to_wall);
       ballSpeedY = -ballSpeedY;
-      this.createParticles(Ball.X + 16,Ball.Y, 5,new Image('assets/effect/light_white.png'));
+      createParticles(Ball.X + 16,Ball.Y, 5,new Image('assets/effect/light_white.png'));
     }else if((Ball.X + 32 >= 630 && Ball.Y + 32<= 135)){
-      this.track_inPlay(tracks.ball_to_wall);
+      track_inPlay(tracks.ball_to_wall);
       ballSpeedX = -ballSpeedX; 
-      this.createParticles(Ball.X + 16,Ball.Y + 16, 5,new Image('assets/effect/light_white.png'));
+      createParticles(Ball.X + 16,Ball.Y + 16, 5,new Image('assets/effect/light_white.png'));
     }
     // green color arena 
     if ((Ball.Y + 32>= 438 && Ball.X + 32< 320 )){
-      this.track_inPlay(tracks.ball_to_wall);
+      track_inPlay(tracks.ball_to_wall);
       ballSpeedY = -ballSpeedY;
-      this.createParticles(Ball.X + 16 ,Ball.Y + 16, 5,new Image('assets/effect/light_green.png'));
+      createParticles(Ball.X + 16 ,Ball.Y + 16, 5,new Image('assets/effect/light_green.png'));
     }else if ((Ball.X <=10 && Ball.Y + 32 >= 315)){
-      this.track_inPlay(tracks.ball_to_wall);
+      track_inPlay(tracks.ball_to_wall);
       ballSpeedX = -ballSpeedX; 
-      this.createParticles(Ball.X,Ball.Y + 16, 5,new Image('assets/effect/light_green.png'));
+      createParticles(Ball.X,Ball.Y + 16, 5,new Image('assets/effect/light_green.png'));
     }
     // Blue color arena 
     if ((Ball.Y + 32 >= 438 && Ball.X + 32> 320 )){
-      this.track_inPlay(tracks.ball_to_wall);
+      track_inPlay(tracks.ball_to_wall);
       ballSpeedY = -ballSpeedY;
-      this.createParticles(Ball.X + 16 ,Ball.Y + 16, 5,new Image('assets/effect/light_blue.png'));
+      createParticles(Ball.X + 16 ,Ball.Y + 16, 5,new Image('assets/effect/light_blue.png'));
     }else if ((Ball.X + 32 >=630 && Ball.Y + 32>= 315)){
-      this.track_inPlay(tracks.ball_to_wall);
+      track_inPlay(tracks.ball_to_wall);
       ballSpeedX = -ballSpeedX; 
-      this.createParticles(Ball.X + 16 ,Ball.Y + 16, 5,new Image('assets/effect/light_blue.png'));
+      createParticles(Ball.X + 16 ,Ball.Y + 16, 5,new Image('assets/effect/light_blue.png'));
     }
     
     //Colisão dos paddle com a parede
@@ -528,7 +504,7 @@ class main {
       Players.Player2[0].X = 0;
     }
   }
-  draw() {
+function  draw() {
     GameImage.bg.draw(0, 0);
     GameImage.ball.draw(Ball.X, Ball.Y);
     GameImage.red.draw(Players.Player1[0].X, Players.Player1[0].Y);
@@ -537,76 +513,83 @@ class main {
     Nums.nums_red.draw(330,25);
   }
   
-  WinnerPlayer(){
-    if(Players.Player1[0].gols == 5){
-      this.track_inPlay(tracks.loser);
-      GameImage.loser.draw(((640 - 373)/2), ((448 - 83)/2));
-      this.ResetBall();
-      this.ResetPlayers();
-      font.print(110,375 , "pressione X para continuar!");
-      if (Pads.check(new_pad, Pads.CROSS) && !Pads.check(old_pad, Pads.CROSS)){
-        Players.Player1[0].gols = 0;
-        Players.Player2[0].gols = 0;
-        this.track_inPlay(tracks.gol);
-        screen = 0;
-      
-      }
-    }else if(Players.Player2[0].gols == 5){
-      this.track_inPlay(tracks.winner);
-      GameImage.winner.draw(((640 - 402)/2), ((448 - 84)/2));
-      this.ResetBall();
-      this.ResetPlayers();
-      font.print(110,375 , "pressione X para continuar!");
-      if (Pads.check(new_pad, Pads.CROSS) && !Pads.check(old_pad, Pads.CROSS)){
-        Players.Player1[0].gols = 0;
-        Players.Player2[0].gols = 0;
-        this.track_inPlay(tracks.gol);
-        screen = 0;
-      }
-    }
-  }
-  check_gol(){
-    if ((Ball.X <= 5) && (Ball.Y >= 125 && Ball.Y + 32 <= 325)) {
-      Players.Player2[0].gols += 1;
-      this.track_inPlay(tracks.gol);
-      ballSpeedX = 0;
-      ballSpeedY = 0;
-      Ball.X = 242;
-      Ball.Y = 208;
-      this.ResetPlayers();
-      this.createParticles(Ball.X + 16,Ball.Y + 16, 5, new Image('assets/effect/light_red.png'));
-      Nums = {
-        nums_red : new Image("assets/num/num_blue_"+Players.Player2[0].gols+".png",RAM),
-        nums_blue : new Image( "assets/num/num_blue_"+Players.Player1[0].gols+".png",RAM)
-      }
-        
-    }
 
-    if ((Ball.X + 32 >= 635) && (Ball.Y  >= 125 && Ball.Y + 32 <= 325)) {
-      Players.Player1[0].gols += 1;
-      this.track_inPlay(tracks.gol);
-      ballSpeedX = 0;
-      ballSpeedY = 0;
-      Ball.X = 364;
-      Ball.Y = 208;
-      this.ResetPlayers();
-      this.createParticles(Ball.X + 16,Ball.Y + 16, 5, new Image('assets/effect/light_green.png'));
-      Nums = {
-        nums_red : new Image("assets/num/num_blue_"+Players.Player2[0].gols+".png",RAM),
-        nums_blue : new Image( "assets/num/num_blue_"+Players.Player1[0].gols+".png",RAM)
-      }
+function  check_gol(){
+  if ((Ball.X == 242 || Ball.X == 364) && (Players.Player2[0].gols <= 4 || Players.Player1[0].gols <= 4)){
+    GameImage.gol.draw(133.5, 280);
   }
+  if ((Ball.X <= 5) && (Ball.Y >= 125 && Ball.Y + 32 <= 325)) {
+    track_inPlay(tracks.gol);
+    createParticles(Ball.X + 16,Ball.Y + 16, 5, new Image('assets/effect/light_red.png'));
+    Players.Player2[0].gols += 1;
+    ballSpeedX = 0;
+    ballSpeedY = 0;
+    Ball.X = 242;
+    Ball.Y = 208;
+    ResetPlayers();
+    Nums = {
+      nums_red : new Image("assets/num/num_blue_"+Players.Player2[0].gols+".png",RAM),
+      nums_blue : new Image( "assets/num/num_blue_"+Players.Player1[0].gols+".png",RAM)
+    }
   }
-  start(){
-    old_pad = new_pad;
-    new_pad = Pads.get();
-    if (Pads.check(new_pad, Pads.START) && !Pads.check(old_pad, Pads.START) && screen == 1) {
+
+  if ((Ball.X + 32 >= 635) && (Ball.Y  >= 125 && Ball.Y + 32 <= 325)) {
+    track_inPlay(tracks.gol);
+    createParticles(Ball.X + 16,Ball.Y + 16, 5, new Image('assets/effect/light_green.png'));
+    Players.Player1[0].gols += 1;
+    ballSpeedX = 0;
+    ballSpeedY = 0;
+    Ball.X = 364;
+    Ball.Y = 208;
+    ResetPlayers();
+    Nums = {
+      nums_red : new Image("assets/num/num_blue_"+Players.Player2[0].gols+".png",RAM),
+      nums_blue : new Image( "assets/num/num_blue_"+Players.Player1[0].gols+".png",RAM)
+    }
+  }
+}
+function WinnerPlayer(){
+  if(Players.Player1[0].gols == 5){
+    ResetBall();
+    track_inPlay(tracks.loser);
+    GameImage.loser.draw(((640 - 373)/2), ((448 - 83)/2))
+    font.print(70,375 , "pressione SELECT para continuar!");
+    if (pd2.justPressed(Pads.SELECT) && screen ==  1){
+      ResetBall();
+      ResetPlayers();
+      Players.Player1[0].gols = 0;
+      Players.Player2[0].gols = 0;
+      track_inPlay(tracks.gol);
+      screen = 0;
+    }
+  }
+  if(Players.Player2[0].gols == 5){
+    ResetBall();
+    track_inPlay(tracks.winner);
+    GameImage.winner.draw(((640 - 373)/2), ((448 - 83)/2));
+    font.print(70,375 , "pressione SELECT para continuar!");
+    if (pd2.justPressed(Pads.SELECT) && screen == 1){
+      ResetBall();
+      ResetPlayers();
+      Ball.X = 244;
+      Players.Player1[0].gols = 0;
+      Players.Player2[0].gols = 0;
+      track_inPlay(tracks.gol);
+      screen = 0;
+    }
+  }
+  
+  
+}
+
+function  start(){
+    if (pd2.justPressed(Pads.START) && screen == 1) {
       screen = 2;
     }
     
     
   }
-  MoveBall() {
+function  MoveBall() {
     Ball.X -= ballSpeedX;
     Ball.Y -= ballSpeedY;
     //desacelacao do vetores positivos
@@ -624,23 +607,37 @@ class main {
       ballSpeedY++;
     }
   }
-
-  Play() {
-    this.Move_paddles();
-    this.draw();
-    this.updateParticles();
-    this.start();
-    this.MoveBall();  // Adicionando a movimentação da bola
-    this.pause_thema();
-    this.check_gol();
-    this.WinnerPlayer();
+function  bal_inBlock(){
+  if(Ball.X < 0 || Ball.X > 640 || Ball.Y < 0 || Ball.Y > 448){
+    ResetBall();
   }
-  
 }
-const Game = new main();
-os.setInterval(() => {
+function  Play() {
+  bal_inBlock();
+  Move_paddles();
+  draw();
+  updateParticles();
+  start();
+  MoveBall();  // Adicionando a movimentação da bola
+  pause_thema();
+  check_gol();
+  WinnerPlayer();
+}
+while(true){
+  std.gc();
   Screen.clear();
-  Game.SetScreen();
+  if (screen == 0) {
+      Menu();
+  }
+  if (screen == 1) {
+      Play();
+  }
+  if (screen == 2){
+      menu_pause();
+  }
+  if (screen == 3){
+      menu_opçoes();
+  }
   Screen.waitVblankStart();
   Screen.flip();
-},0);
+}
